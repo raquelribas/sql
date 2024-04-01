@@ -1,6 +1,6 @@
 ### Goal: select the contacts from 3 specific cities to lauch a marketing campaign and send to these contacts.
 
-```
+``` Shell
 SET GLOBAL local_infile=1;
 
 CREATE DATABASE 'database_name';

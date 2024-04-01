@@ -123,7 +123,7 @@ tel = nullif(@Telefone, ''),
 cep_completo = nullif(@cep_completo, ''),
 cep = nullif(@cep, ''),
 cidade = nullif(@cidade, '')
-;
+; 
 
 -- we had duplicates between this new table and the 'raw' ones. Since the third table had updated information on some contacts, I used join to bring these updated information.
 CREATE VIEW cg_promo AS

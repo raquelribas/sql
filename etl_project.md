@@ -1,6 +1,6 @@
-### Goal: select the contacts from 3 specific cities to lauch a marketing campaign and send to these contacts.
+### Goal: select all contacts from 3 specific cities to lauch a marketing campaign and send to these contacts.
 
-``` Shell
+``` sql
 SET GLOBAL local_infile=1;
 
 CREATE DATABASE 'database_name';
@@ -92,7 +92,7 @@ SELECT *
     WHERE cidade IN ('São Paulo', 'Taboão da Serra', 'Embuguacu', 'Embu-guaçu') AND envia_info = 1;
 
 -- Creating the third table with additional information
-CREATE TABLE cgs_ceps(
+CREATE TABLE cgs_raw(
 	`id_cg` VARCHAR(255),
     `contrato` VARCHAR(255),
     `nome` VARCHAR(255),
@@ -101,13 +101,12 @@ CREATE TABLE cgs_ceps(
     `dt_nascimento` VARCHAR(255),
     `tel` VARCHAR(255),
     `cep_completo` VARCHAR(255),
-    `cep` VARCHAR(255),
-    `cidade` VARCHAR(255)
+    `cep` VARCHAR(255)
 );
 
 -- loading the .csv file to the created table
 LOAD DATA LOCAL INFILE 'C:/path/file.csv'
-INTO TABLE cgs_ceps
+INTO TABLE cgs_raw
 FIELDS TERMINATED BY ';'
 LINES TERMINATED BY '\r\n'
 IGNORE 1 ROWS
@@ -121,15 +120,17 @@ cpf = nullif(@Documento, ''),
 dt_nascimento = nullif(@Nascimento, ''),
 tel = nullif(@Telefone, ''),
 cep_completo = nullif(@cep_completo, ''),
-cep = nullif(@cep, ''),
-cidade = nullif(@cidade, '')
+cep = nullif(@cep, '')
 ; 
 
+-- removed the '-' character from cep on cgs_raw table so it would match the other tables
+UPDATE cgs_raw SET cep = REPLACE(cep, '-', '');
+
 -- we had duplicates between this new table and the 'raw' ones. Since the third table had updated information on some contacts, I used join to bring these updated information.
-CREATE VIEW cg_promo AS
+CREATE TABLE cg_promo AS
 SELECT up.*, cg.email AS email_atualizado, cg.cep AS cep_atualizado, cg.tel AS tel_atualizado
 FROM union_promo up
-	JOIN cgs_ceps cg
+	JOIN cgs_raw cg
     ON up.cpf = cg.cpf;
 
 -- created a fourth table with ceps(brazilian zip code) gathered with python automation using API requests from a public source
@@ -155,5 +156,25 @@ cidade = nullif(@city, ''),
 bairro = nullif(@neighborhood, ''),
 rua = nullif(@street, '')
 ;
+
+-- created table with city information joining cities from ceps table on cgs_raw
+CREATE TABLE cgs_ceps AS 
+SELECT *
+FROM
+(SELECT cg.*, c.cidade
+FROM comgas cg
+LEFT JOIN ceps c ON cg.cep = c.cep) as cgs
+WHERE cidade IN ('São Paulo', 'Taboão da Serra', 'Embuguacu', 'Embu-guaçu');
+
+-- final table with all information needed from base_raw, base_raw2 and cgs_ceps
+INSERT INTO cg_promo (nome, email, cpf, tel_prim, envia_info, estado, cep, cidade) 
+SELECT cg.nome, cg.email, cg.cpf, cg.tel, 1, 'SP', cg.cep_completo, cg.cidade
+FROM cgs_ceps cg
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM cg_promo p
+    WHERE p.cpf = cg.cpf
+);
+
 
 ```

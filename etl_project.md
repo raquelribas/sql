@@ -1,4 +1,4 @@
-### Goal: select all contacts from 3 specific cities to lauch a marketing campaign and send to these contacts.
+### Goal: select all contacts from 3 specific cities to launch a marketing campaign and send to these contacts.
 
 ``` sql
 SET GLOBAL local_infile=1;

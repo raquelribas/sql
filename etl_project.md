@@ -100,7 +100,6 @@ CREATE TABLE cgs_raw(
     `cpf` VARCHAR(255),
     `dt_nascimento` VARCHAR(255),
     `tel` VARCHAR(255),
-    `cep_completo` VARCHAR(255),
     `cep` VARCHAR(255)
 );
 
@@ -119,7 +118,6 @@ email = nullif(@Email, ''),
 cpf = nullif(@Documento, ''),
 dt_nascimento = nullif(@Nascimento, ''),
 tel = nullif(@Telefone, ''),
-cep_completo = nullif(@cep_completo, ''),
 cep = nullif(@cep, '')
 ; 
 
@@ -168,7 +166,7 @@ WHERE cidade IN ('São Paulo', 'Taboão da Serra', 'Embuguacu', 'Embu-guaçu');
 
 -- final table with all information needed from base_raw, base_raw2 and cgs_ceps
 INSERT INTO cg_promo (nome, email, cpf, tel_prim, envia_info, estado, cep, cidade) 
-SELECT cg.nome, cg.email, cg.cpf, cg.tel, 1, 'SP', cg.cep_completo, cg.cidade
+SELECT cg.nome, cg.email, cg.cpf, cg.tel, 1, 'SP', cg.cep, cg.cidade
 FROM cgs_ceps cg
 WHERE NOT EXISTS (
     SELECT 1
